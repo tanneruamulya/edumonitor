@@ -4,21 +4,64 @@ import { Eye, EyeOff, GraduationCap } from "lucide-react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { useToast } from "@/hooks/use-toast";
 import campusBg from "@/assets/campus-bg.jpg";
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loginId, setLoginId] = useState("");
   const [password, setPassword] = useState("");
+  const [showForgotDialog, setShowForgotDialog] = useState(false);
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    navigate("/classes");
+    
+    // Validate credentials
+    if (loginId === "10208" && password === "bytebros123") {
+      navigate("/classes");
+    } else {
+      toast({
+        title: "Invalid Credentials",
+        description: "Please enter correct Login ID and Password",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
     <div className="min-h-screen flex relative overflow-hidden bg-background">
+      {/* Forgot Password Dialog */}
+      <Dialog open={showForgotDialog} onOpenChange={setShowForgotDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-center">Forgot Password?</DialogTitle>
+            <DialogDescription className="text-center pt-4">
+              Please contact the administrator to reset your password.
+              <br /><br />
+              <span className="font-semibold text-foreground">Admin Contact:</span>
+              <br />
+              📞 +91 9876543210
+              <br />
+              📧 admin@edumonitor.edu
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-center mt-4">
+            <Button onClick={() => setShowForgotDialog(false)}>
+              Close
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* Background Image - Right Side */}
       <div className="absolute inset-0 z-0">
         <img 
@@ -146,11 +189,17 @@ const Login = () => {
                     Login as Teacher
                   </Link>
                   <Link 
-                    to="#" 
-                    className="block text-sm text-muted-foreground hover:text-foreground transition-colors"
+                    to="/parent-login" 
+                    className="block text-accent hover:text-accent/80 font-medium transition-colors"
+                  >
+                    Login as Parent
+                  </Link>
+                  <button 
+                    onClick={() => setShowForgotDialog(true)}
+                    className="block w-full text-sm text-muted-foreground hover:text-foreground transition-colors"
                   >
                     Forgot Password?
-                  </Link>
+                  </button>
                 </div>
 
                 <div className="mt-10 text-center">
