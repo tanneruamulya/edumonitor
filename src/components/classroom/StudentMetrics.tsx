@@ -1,27 +1,21 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Search, User } from "lucide-react";
 import { Input } from "@/components/ui/input";
-
-const studentsData = [
-  { id: "STU001", name: "Alex Johnson", avatar: null, attendance: 95, attention: 82, behavior: 88 },
-  { id: "STU002", name: "Emma Williams", avatar: null, attendance: 98, attention: 90, behavior: 95 },
-  { id: "STU003", name: "Michael Brown", avatar: null, attendance: 88, attention: 72, behavior: 78 },
-  { id: "STU004", name: "Sarah Davis", avatar: null, attendance: 100, attention: 88, behavior: 92 },
-  { id: "STU005", name: "James Wilson", avatar: null, attendance: 92, attention: 75, behavior: 80 },
-  { id: "STU006", name: "Emily Taylor", avatar: null, attendance: 96, attention: 85, behavior: 90 },
-  { id: "STU007", name: "Daniel Martinez", avatar: null, attendance: 90, attention: 78, behavior: 85 },
-  { id: "STU008", name: "Olivia Anderson", avatar: null, attendance: 94, attention: 86, behavior: 88 },
-  { id: "STU009", name: "William Thomas", avatar: null, attendance: 87, attention: 70, behavior: 75 },
-  { id: "STU010", name: "Sophia Jackson", avatar: null, attendance: 99, attention: 92, behavior: 96 },
-  { id: "STU011", name: "Benjamin White", avatar: null, attendance: 91, attention: 77, behavior: 82 },
-  { id: "STU012", name: "Isabella Harris", avatar: null, attendance: 97, attention: 89, behavior: 91 },
-];
+import { getStudentsForSection } from "@/data/studentsData";
 
 const StudentMetrics = () => {
   const navigate = useNavigate();
+  const { classId, sectionId } = useParams();
   const [searchQuery, setSearchQuery] = useState("");
+
+  // Parse class number and section from URL params
+  const classNum = parseInt(classId || "1");
+  const section = (sectionId || "a").toUpperCase().replace("SECTION-", "");
+
+  // Get students for this specific class and section
+  const studentsData = getStudentsForSection(classNum, section);
 
   const filteredStudents = studentsData.filter(
     student => 
@@ -38,7 +32,9 @@ const StudentMetrics = () => {
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-3xl font-bold text-foreground mb-2">Student Metrics</h1>
-          <p className="text-muted-foreground">Individual student performance analytics</p>
+          <p className="text-muted-foreground">
+            Individual student performance analytics - Class {classNum} Section {section} ({studentsData.length} students)
+          </p>
         </div>
         <div className="relative w-72">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -58,7 +54,7 @@ const StudentMetrics = () => {
             key={student.id}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.05 * index }}
+            transition={{ delay: 0.03 * (index % 12) }}
             onClick={() => handleStudentClick(student.id)}
             className="bg-card rounded-2xl p-5 shadow-soft cursor-pointer hover:shadow-medium transition-all hover:-translate-y-1 group"
           >

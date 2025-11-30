@@ -3,13 +3,10 @@ import { useNavigate, useParams } from "react-router-dom";
 import { 
   Radio, 
   BarChart2, 
-  PieChart as PieChartIcon, 
   FileText,
   ArrowLeft,
   Users,
-  Activity,
-  TrendingUp,
-  AlertCircle
+  AlertTriangle
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -17,6 +14,7 @@ import StudentMetrics from "@/components/classroom/StudentMetrics";
 import ClassroomMetrics from "@/components/classroom/ClassroomMetrics";
 import ClassroomProfile from "@/components/classroom/ClassroomProfile";
 import LiveView from "@/components/classroom/LiveView";
+import StudentReports from "@/components/classroom/StudentReports";
 
 const ClassroomDashboard = () => {
   const navigate = useNavigate();
@@ -27,6 +25,7 @@ const ClassroomDashboard = () => {
     { id: "live", label: "Live", icon: Radio },
     { id: "student-metrics", label: "Student Metrics", icon: Users },
     { id: "classroom-metrics", label: "Classroom Metrics", icon: BarChart2 },
+    { id: "student-reports", label: "Student Reports", icon: AlertTriangle },
     { id: "classroom-profile", label: "Classroom Profile", icon: FileText },
   ];
 
@@ -38,6 +37,8 @@ const ClassroomDashboard = () => {
         return <StudentMetrics />;
       case "classroom-metrics":
         return <ClassroomMetrics />;
+      case "student-reports":
+        return <StudentReports />;
       case "classroom-profile":
         return <ClassroomProfile />;
       default:
@@ -68,7 +69,7 @@ const ClassroomDashboard = () => {
             </div>
             <div>
               <h2 className="font-bold text-foreground">Class {classId}</h2>
-              <p className="text-sm text-muted-foreground">Section {sectionId?.toUpperCase().replace("-", " ")}</p>
+              <p className="text-sm text-muted-foreground">Section {sectionId?.toUpperCase().replace("SECTION-", "")}</p>
             </div>
           </div>
         </div>
@@ -90,11 +91,11 @@ const ClassroomDashboard = () => {
         <div className="mt-auto pt-6 border-t border-border space-y-3">
           <div className="flex items-center justify-between text-sm">
             <span className="text-muted-foreground">Total Students</span>
-            <span className="font-semibold text-foreground">32</span>
+            <span className="font-semibold text-foreground">36</span>
           </div>
           <div className="flex items-center justify-between text-sm">
             <span className="text-muted-foreground">Present Today</span>
-            <span className="font-semibold text-success">30</span>
+            <span className="font-semibold text-success">34</span>
           </div>
           <div className="flex items-center justify-between text-sm">
             <span className="text-muted-foreground">Avg Attention</span>

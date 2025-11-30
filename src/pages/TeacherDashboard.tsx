@@ -16,7 +16,8 @@ import {
   MapPin,
   Calendar,
   Award,
-  ChevronRight
+  ChevronRight,
+  Bell
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -36,6 +37,12 @@ import {
   Pie,
   Cell
 } from "recharts";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { generateTeacherNotifications, TeacherNotification } from "@/data/studentsData";
 
 const classData = [
   { name: "Class 1-A", attention: 78, behavior: 85, attendance: 92, engagement: 75, misconduct: 5 },
@@ -48,10 +55,10 @@ const classData = [
 const chartColors = ["hsl(199, 89%, 48%)", "hsl(173, 58%, 39%)", "hsl(142, 71%, 45%)", "hsl(38, 92%, 50%)", "hsl(0, 84%, 60%)"];
 
 const teacherProfile = {
-  name: "Mr. Johnson",
-  email: "johnson@school.edu",
-  phone: "+1 234 567 8900",
-  address: "123 Education Lane, Springfield",
+  name: "Mrs. Lakshmi Devi",
+  email: "lakshmi.devi@school.edu",
+  phone: "+91 98765 43210",
+  address: "123 Education Lane, Bangalore",
   department: "Mathematics",
   employeeId: "TCH-2024-001",
   joinDate: "January 15, 2020",
@@ -64,6 +71,19 @@ const TeacherDashboard = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("dashboard");
   const [previewClass, setPreviewClass] = useState<typeof classData[0] | null>(null);
+  const [notifications, setNotifications] = useState<TeacherNotification[]>(generateTeacherNotifications());
+
+  const unreadCount = notifications.filter(n => !n.isRead).length;
+
+  const markAsRead = (id: string) => {
+    setNotifications(prev => 
+      prev.map(n => n.id === id ? { ...n, isRead: true } : n)
+    );
+  };
+
+  const markAllAsRead = () => {
+    setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
+  };
 
   const sidebarItems = [
     { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -386,7 +406,7 @@ const TeacherDashboard = () => {
             </div>
             <div className="text-center p-4 bg-secondary/50 rounded-xl">
               <Users className="w-8 h-8 text-success mx-auto mb-2" />
-              <p className="text-2xl font-bold text-foreground">156</p>
+              <p className="text-2xl font-bold text-foreground">180</p>
               <p className="text-sm text-muted-foreground">Students</p>
             </div>
             <div className="text-center p-4 bg-secondary/50 rounded-xl">
@@ -421,13 +441,15 @@ const TeacherDashboard = () => {
         animate={{ x: 0, opacity: 1 }}
         className="w-64 bg-card border-r border-border p-6 flex flex-col"
       >
-        <div className="flex items-center gap-3 mb-8">
-          <div className="w-10 h-10 bg-accent/10 rounded-xl flex items-center justify-center">
-            <User className="w-5 h-5 text-accent" />
-          </div>
-          <div>
-            <h2 className="font-semibold text-foreground">Mr. Johnson</h2>
-            <p className="text-xs text-muted-foreground">Mathematics Teacher</p>
+        <div className="mb-8">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 bg-accent/10 rounded-2xl flex items-center justify-center">
+              <User className="w-6 h-6 text-accent" />
+            </div>
+            <div>
+              <h2 className="font-bold text-foreground">{teacherProfile.name}</h2>
+              <p className="text-sm text-muted-foreground">{teacherProfile.department}</p>
+            </div>
           </div>
         </div>
 
@@ -444,18 +466,77 @@ const TeacherDashboard = () => {
           ))}
         </nav>
 
-        <button
-          onClick={() => navigate("/teacher-login")}
-          className="sidebar-item w-full text-destructive hover:bg-destructive/10 hover:text-destructive"
+        <Button 
+          variant="ghost" 
+          onClick={() => navigate("/")}
+          className="mt-auto text-destructive hover:text-destructive hover:bg-destructive/10"
         >
-          <LogOut className="w-5 h-5" />
-          <span>Logout</span>
-        </button>
+          <LogOut className="w-5 h-5 mr-2" />
+          Logout
+        </Button>
       </motion.aside>
 
       {/* Main Content */}
-      <main className="flex-1 p-8 overflow-auto">
-        {renderContent()}
+      <main className="flex-1 overflow-auto">
+        {/* Top Bar with Notification Bell */}
+        <div className="sticky top-0 bg-background/80 backdrop-blur-sm border-b border-border z-10">
+          <div className="flex items-center justify-end p-4">
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="ghost" size="icon" className="relative">
+                  <Bell className="w-5 h-5" />
+                  {unreadCount > 0 && (
+                    <span className="absolute -top-1 -right-1 w-5 h-5 bg-destructive text-destructive-foreground text-xs rounded-full flex items-center justify-center">
+                      {unreadCount}
+                    </span>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-96 p-0" align="end">
+                <div className="p-4 border-b border-border flex items-center justify-between">
+                  <h3 className="font-semibold text-foreground">Misconduct Alerts</h3>
+                  {unreadCount > 0 && (
+                    <Button variant="ghost" size="sm" onClick={markAllAsRead} className="text-xs">
+                      Mark all read
+                    </Button>
+                  )}
+                </div>
+                <div className="max-h-80 overflow-auto">
+                  {notifications.map((notif) => (
+                    <div 
+                      key={notif.id}
+                      onClick={() => markAsRead(notif.id)}
+                      className={`p-4 border-b border-border/50 cursor-pointer hover:bg-secondary/50 transition-colors ${!notif.isRead ? 'bg-destructive/5' : ''}`}
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className={`w-2 h-2 rounded-full mt-2 ${!notif.isRead ? 'bg-destructive' : 'bg-muted'}`} />
+                        <div className="flex-1">
+                          <p className="text-sm text-foreground">
+                            <span className="font-medium">{notif.studentName}</span> detected {notif.type.toLowerCase()}
+                          </p>
+                          <div className="flex items-center gap-2 mt-1">
+                            <span className="text-xs text-muted-foreground">{notif.time}</span>
+                            <span className="text-xs bg-secondary px-2 py-0.5 rounded">Class {notif.classSection}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </PopoverContent>
+            </Popover>
+          </div>
+        </div>
+
+        <motion.div
+          key={activeTab}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+          className="p-8"
+        >
+          {renderContent()}
+        </motion.div>
       </main>
 
       {/* Preview Modal */}
@@ -465,80 +546,136 @@ const TeacherDashboard = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-foreground/20 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
             onClick={() => setPreviewClass(null)}
           >
             <motion.div
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-card rounded-3xl p-8 max-w-4xl w-full max-h-[90vh] overflow-auto shadow-strong"
+              className="bg-card rounded-2xl shadow-strong w-full max-w-4xl max-h-[90vh] overflow-auto"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold text-foreground">{previewClass.name} Analytics</h2>
+              <div className="p-6 border-b border-border flex items-center justify-between">
+                <h2 className="text-2xl font-bold text-foreground">{previewClass.name} Preview</h2>
                 <Button variant="ghost" size="icon" onClick={() => setPreviewClass(null)}>
                   <X className="w-5 h-5" />
                 </Button>
               </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Metrics Pie Chart */}
-                <div className="bg-secondary/30 rounded-2xl p-4">
-                  <h3 className="font-semibold mb-4 text-foreground">Performance Metrics</h3>
-                  <ResponsiveContainer width="100%" height={250}>
+              
+              <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Attention Chart */}
+                <div className="bg-secondary/30 rounded-xl p-4">
+                  <h3 className="font-semibold text-foreground mb-3">Attention Level</h3>
+                  <ResponsiveContainer width="100%" height={200}>
                     <PieChart>
                       <Pie
                         data={[
                           { name: "Attention", value: previewClass.attention },
-                          { name: "Behavior", value: previewClass.behavior },
-                          { name: "Attendance", value: previewClass.attendance },
-                          { name: "Engagement", value: previewClass.engagement },
+                          { name: "Distracted", value: 100 - previewClass.attention }
                         ]}
                         cx="50%"
                         cy="50%"
-                        innerRadius={60}
-                        outerRadius={100}
-                        paddingAngle={5}
+                        innerRadius={50}
+                        outerRadius={80}
                         dataKey="value"
                       >
-                        {chartColors.slice(0, 4).map((color, index) => (
-                          <Cell key={`cell-${index}`} fill={color} />
-                        ))}
+                        <Cell fill={chartColors[0]} />
+                        <Cell fill="hsl(var(--secondary))" />
                       </Pie>
                       <Tooltip />
-                      <Legend />
                     </PieChart>
                   </ResponsiveContainer>
+                  <p className="text-center text-2xl font-bold text-primary">{previewClass.attention}%</p>
                 </div>
 
-                {/* Bar Chart */}
-                <div className="bg-secondary/30 rounded-2xl p-4">
-                  <h3 className="font-semibold mb-4 text-foreground">Detailed Breakdown</h3>
-                  <ResponsiveContainer width="100%" height={250}>
-                    <BarChart
-                      data={[
-                        { metric: "Attention", value: previewClass.attention },
-                        { metric: "Behavior", value: previewClass.behavior },
-                        { metric: "Attendance", value: previewClass.attendance },
-                        { metric: "Engagement", value: previewClass.engagement },
-                      ]}
-                      layout="vertical"
-                    >
-                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                      <XAxis type="number" domain={[0, 100]} stroke="hsl(var(--muted-foreground))" />
-                      <YAxis dataKey="metric" type="category" stroke="hsl(var(--muted-foreground))" width={80} />
+                {/* Behavior Chart */}
+                <div className="bg-secondary/30 rounded-xl p-4">
+                  <h3 className="font-semibold text-foreground mb-3">Behavior Score</h3>
+                  <ResponsiveContainer width="100%" height={200}>
+                    <PieChart>
+                      <Pie
+                        data={[
+                          { name: "Good", value: previewClass.behavior },
+                          { name: "Needs Work", value: 100 - previewClass.behavior }
+                        ]}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={50}
+                        outerRadius={80}
+                        dataKey="value"
+                      >
+                        <Cell fill={chartColors[1]} />
+                        <Cell fill="hsl(var(--secondary))" />
+                      </Pie>
                       <Tooltip />
-                      <Bar dataKey="value" fill={chartColors[0]} radius={[0, 8, 8, 0]} />
-                    </BarChart>
+                    </PieChart>
                   </ResponsiveContainer>
+                  <p className="text-center text-2xl font-bold text-accent">{previewClass.behavior}%</p>
                 </div>
-              </div>
 
-              <div className="mt-6 p-4 bg-destructive/5 rounded-2xl border border-destructive/20">
-                <div className="flex items-center gap-3">
-                  <AlertTriangle className="w-5 h-5 text-destructive" />
-                  <span className="font-medium text-foreground">Misconduct Incidents: {previewClass.misconduct}</span>
+                {/* Attendance Chart */}
+                <div className="bg-secondary/30 rounded-xl p-4">
+                  <h3 className="font-semibold text-foreground mb-3">Attendance</h3>
+                  <ResponsiveContainer width="100%" height={200}>
+                    <PieChart>
+                      <Pie
+                        data={[
+                          { name: "Present", value: previewClass.attendance },
+                          { name: "Absent", value: 100 - previewClass.attendance }
+                        ]}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={50}
+                        outerRadius={80}
+                        dataKey="value"
+                      >
+                        <Cell fill={chartColors[2]} />
+                        <Cell fill="hsl(var(--secondary))" />
+                      </Pie>
+                      <Tooltip />
+                    </PieChart>
+                  </ResponsiveContainer>
+                  <p className="text-center text-2xl font-bold text-success">{previewClass.attendance}%</p>
+                </div>
+
+                {/* Engagement Chart */}
+                <div className="bg-secondary/30 rounded-xl p-4">
+                  <h3 className="font-semibold text-foreground mb-3">Engagement</h3>
+                  <ResponsiveContainer width="100%" height={200}>
+                    <PieChart>
+                      <Pie
+                        data={[
+                          { name: "Engaged", value: previewClass.engagement },
+                          { name: "Disengaged", value: 100 - previewClass.engagement }
+                        ]}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={50}
+                        outerRadius={80}
+                        dataKey="value"
+                      >
+                        <Cell fill={chartColors[3]} />
+                        <Cell fill="hsl(var(--secondary))" />
+                      </Pie>
+                      <Tooltip />
+                    </PieChart>
+                  </ResponsiveContainer>
+                  <p className="text-center text-2xl font-bold text-warning">{previewClass.engagement}%</p>
+                </div>
+
+                {/* Misconduct Summary */}
+                <div className="md:col-span-2 bg-destructive/10 rounded-xl p-4">
+                  <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
+                    <AlertTriangle className="w-5 h-5 text-destructive" />
+                    Misconduct Summary
+                  </h3>
+                  <div className="flex items-center justify-center">
+                    <div className="text-center">
+                      <p className="text-5xl font-bold text-destructive">{previewClass.misconduct}</p>
+                      <p className="text-muted-foreground">Total Incidents This Month</p>
+                    </div>
+                  </div>
                 </div>
               </div>
             </motion.div>
